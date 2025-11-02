@@ -42,4 +42,6 @@ float unPackInTable(const typename binningType::binned_t& valueToUnpack)
 } // namespace pidutils
 } // namespace o2::aod
 
+using namespace o2::aod::pidutils;
+
 #endif // COMMON_DATAMODEL_PIDRESPONSE_H_
