@@ -9,82 +9,72 @@
 # granted to it by virtue of its status as an Intergovernmental Organization
 # or submit itself to any jurisdiction.
 
-cmake_minimum_required(VERSION 3.23 FATAL_ERROR)
+o2physics_add_dpl_workflow(two-particle-correlations
+                           SOURCES twoParticleCorrelations.cxx
+                           PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore O2Physics::TwoPartCorrCore
+                           COMPONENT_NAME Analysis)
+o2physics_add_dpl_workflow(r2p24id
+                           SOURCES r2p2-4-id.cxx
+                           PUBLIC_LINK_LIBRARIES O2Physics::AnalysisCore
+                           COMPONENT_NAME Analysis)
 
-project(O2Physics
-        VERSION 0.0.1
-        LANGUAGES C CXX
-        DESCRIPTION "Physics Analysis for O2")
+o2physics_add_dpl_workflow(lambdacorr
+                           SOURCES lambdaR2Correlation.cxx
+                           PUBLIC_LINK_LIBRARIES O2Physics::AnalysisCore
+                           COMPONENT_NAME Analysis)
 
-cmake_policy(SET CMP0144 NEW)
+o2physics_add_dpl_workflow(dpt-dpt-efficiency-and-qc
+                           SOURCES dptDptEfficiencyAndQc.cxx
+                           PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore O2Physics::PWGCFCore
+                           COMPONENT_NAME Analysis)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-set_property(GLOBAL PROPERTY REPORT_UNDEFINED_PROPERTIES)
+o2physics_add_dpl_workflow(dpt-dpt-per-run-qc
+                           SOURCES dptDptPerRunQc.cxx
+                           PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore O2Physics::PWGCFCore O2Physics::AnalysisCCDB O2::DataFormatsITSMFT
+                           COMPONENT_NAME Analysis)
 
-cmake_host_system_information(RESULT _totalmem QUERY TOTAL_PHYSICAL_MEMORY)
-math(EXPR _total_analysis_jobs "(${_totalmem}-2048)/2048")
-if(_total_analysis_jobs LESS_EQUAL 0)
-  set(_total_analysis_jobs 1)
-endif()
-set(ANALYSIS_COMPILE_POOL ${_total_analysis_jobs} CACHE STRING "How many parallel analysis compilation jobs")
-set_property(GLOBAL PROPERTY JOB_POOLS analysis=${ANALYSIS_COMPILE_POOL})
-message(STATUS "Limiting workflow compilations in parallel to: ${ANALYSIS_COMPILE_POOL}")
+o2physics_add_dpl_workflow(dpt-dpt-per-run-extra-qc
+                           SOURCES dptDptPerRunExtraQc.cxx
+                           PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore O2Physics::PWGCFCore O2Physics::AnalysisCCDB
+                           COMPONENT_NAME Analysis)
 
-# C++ standard
-if(NOT DEFINED CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 20)
-  set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-endif()
+o2physics_add_dpl_workflow(corr-sparse
+                           SOURCES corrSparse.cxx
+                           PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore O2Physics::PWGCFCore
+                           COMPONENT_NAME Analysis)
 
-include(O2PhysicsDefineOptions)
-o2physics_define_options()
+o2physics_add_dpl_workflow(neutron-proton-corr-zdc
+                           SOURCES neutronProtonCorrZdc.cxx
+                           PUBLIC_LINK_LIBRARIES O2Physics::AnalysisCore
+                           COMPONENT_NAME Analysis)
 
-include(O2PhysicsDefineOutputPaths)
-o2physics_define_output_paths()
+o2physics_add_dpl_workflow(di-hadron-cor
+                           SOURCES diHadronCor.cxx
+                           PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore O2Physics::PWGCFCore O2Physics::AnalysisCCDB O2Physics::GFWCore
+                           COMPONENT_NAME Analysis)
 
-include(O2PhysicsDefineRPATH)
-o2physics_define_rpath()
+o2physics_add_dpl_workflow(pid-di-hadron
+                           SOURCES pidDiHadron.cxx
+                           PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore O2Physics::PWGCFCore O2Physics::AnalysisCCDB O2Physics::GFWCore
+                           COMPONENT_NAME Analysis)
 
-# External dependencies
-include(dependencies/CMakeLists.txt)
+o2physics_add_dpl_workflow(longrange-correlation
+                           SOURCES longrangeCorrelation.cxx
+                           PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore O2Physics::PWGCFCore
+                           COMPONENT_NAME Analysis)
 
-# Include macros
-include(O2PhysicsNameTarget)
-include(O2PhysicsAddExecutable)
-include(O2PhysicsAddWorkflow)
-include(O2PhysicsAddLibrary)
-include(O2PhysicsAddHeaderOnlyLibrary)
-include(O2PhysicsTargetRootDictionary)
-include(O2PhysicsSetROOTPCMDependencies)
-include(O2PhysicsDataFile)
-include(AddRootDictionary)
+o2physics_add_dpl_workflow(longrangecorr-derived
+                           SOURCES longrangecorrDerived.cxx
+                           PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore O2Physics::PWGCFCore
+                           COMPONENT_NAME Analysis)
 
-# Main targets of the project in various subdirectories. Order matters.
-add_subdirectory(Common)
-add_subdirectory(ALICE3)
-add_subdirectory(DPG)
+o2physics_add_dpl_workflow(long-range-dihadron-cor
+                           SOURCES longRangeDihadronCor.cxx
+                           PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore O2Physics::PWGCFCore O2Physics::AnalysisCCDB O2Physics::GFWCore
+                           COMPONENT_NAME Analysis)
 
-add_subdirectory(PWGCF)
-add_subdirectory(PWGDQ)
-add_subdirectory(PWGEM)
-add_subdirectory(PWGHF)
-add_subdirectory(PWGJE)
-add_subdirectory(PWGLF)
-add_subdirectory(PWGMM)
-add_subdirectory(PWGUD)
+o2physics_add_dpl_workflow(two-particle-azimuthal-corr
+                           SOURCES twoParticleAzimuthalCorr.cxx
+                           PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore O2Physics::PWGCFCore O2Physics::AnalysisCCDB O2Physics::GFWCore
+                           COMPONENT_NAME Analysis)
 
-add_subdirectory(Tools)
-add_subdirectory(Tutorials)
-add_subdirectory(EventFiltering)
-
-add_subdirectory(Scripts)
-
-# Testing and packaging only needed if we are the top level directory
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-  add_subdirectory(packaging)
-endif()
-
-set_root_pcm_dependencies()
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/ClangBuildAnalyzer.ini.in
-               ${CMAKE_CURRENT_BINARY_DIR}/ClangBuildAnalyzer.ini @ONLY)
