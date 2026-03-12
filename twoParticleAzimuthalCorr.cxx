@@ -1026,7 +1026,7 @@ struct twoParticleAzimuthalCorr {
       LOGF(info, "processMCSame. MC collision: %d, particles: %d, collisions: %d", mcCollision.globalIndex(), mcParticles.size(), collisions.size());
     }
 
-    LOGF(info, "======================================================================");
+    // LOGF(info, "======================================================================");
 
     float cent = -1;
     if (!cfgCentTableUnavailable) {
