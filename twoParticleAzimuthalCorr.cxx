@@ -22,14 +22,12 @@
 #include "PWGCF/GenericFramework/Core/GFWCumulant.h"
 #include "PWGCF/GenericFramework/Core/GFWPowerArray.h"
 #include "PWGCF/GenericFramework/Core/GFWWeights.h"
-
 #include "Common/Core/RecoDecay.h"
 #include "Common/DataModel/Centrality.h"
 #include "Common/DataModel/CollisionAssociationTables.h"
 #include "Common/DataModel/EventSelection.h"
 #include "Common/DataModel/Multiplicity.h"
 #include "Common/DataModel/TrackSelectionTables.h"
-
 #include "CommonConstants/MathConstants.h"
 #include "CommonConstants/PhysicsConstants.h"
 #include "DataFormatsParameters/GRPMagField.h"
@@ -42,12 +40,10 @@
 #include "Framework/StepTHn.h"
 #include "Framework/runDataProcessing.h"
 #include <CCDB/BasicCCDBManager.h>
-
 #include "TF1.h"
 #include "TLorentzVector.h"
 #include "TRandom3.h"
 #include <TPDGCode.h>
-
 #include <string>
 #include <vector>
 
@@ -61,9 +57,7 @@ R__LOAD_LIBRARY(libO2PhysicsPWGCFCore)
 
 // STEP 2
 // Example task illustrating how to mix elements of different partitions and different events + process switches
-
 struct twoParticleAzimuthalCorr {
-
   Service<ccdb::BasicCCDBManager> ccdb;
 
   O2_DEFINE_CONFIGURABLE(cfgCutVtxZ, float, 10.0f, "Accepted z-vertex range")
@@ -164,14 +158,10 @@ struct twoParticleAzimuthalCorr {
   // Define the outputs
   OutputObj<CorrelationContainer> same{"sameEvent"};
   OutputObj<CorrelationContainer> mixed{"mixedEvent"};
-
   HistogramRegistry histos{"Histos", {}, OutputObjHandlingPolicy::AnalysisObject};
-
   // Defining configurables
-
   Configurable<float> ConfMinNSigmaTPCCut{"ConfMinNSigmaTPCCut", 3., "N-sigma TPC cut"};
   Configurable<float> ConfChargeCut{"ConfChargeCut", 0., "N-sigma TPC cut"};
-
   Configurable<float> associatedMinPt{"associatedMinPt", 0.2f, "NSassociatedMinPt"};
   Configurable<float> associatedMaxPt{"associatedMaxPt", 6.0f, "associatedMaxPt"};
   Configurable<float> triggerMinPt{"triggerMinPt", 6.0f, "triggerMinPt"};
@@ -190,40 +180,32 @@ struct twoParticleAzimuthalCorr {
 
   // mixBuffer[zBin] is a deque of previous events; each event is a vector<SimpleTrack>
   std::vector<std::deque<std::vector<SimpleTrack>>> mixBuffer;
-
   // Defining filters
   Filter collisionFilter = (nabs(aod::collision::posZ) < cfgCutVtxZ);
   Filter trackFilter = (nabs(aod::track::eta) < 0.8f) && (aod::track::pt > 0.2f) && (aod::track::pt < 20.0f);
-
   // Applying filters
   using MyTracks = soa::Join<aod::Tracks, aod::TrackSelection, aod::TracksExtra, aod::TracksDCA>;
   using MyFilteredCollisions = soa::Filtered<soa::Join<aod::Collisions, aod::EvSel, aod::CentFT0Cs, aod::CentFT0CVariant1s, aod::CentFT0Ms, aod::CentFV0As, aod::Mults>>;
   using MyFilteredTracks = soa::Filtered<soa::Join<aod::Tracks, aod::TrackSelection, aod::TracksExtra, aod::TracksDCA>>;
   using FilteredTracksWithMCLabels = soa::Filtered<soa::Join<aod::Tracks, aod::TrackSelection, aod::TracksExtra, aod::TracksDCA, aod::McTrackLabels>>;
-
   // Filter for MCParticle
   Filter particleFilter = (nabs(aod::mcparticle::eta) < cfgCutEta) && (aod::mcparticle::pt > cfgCutPtMin) && (aod::mcparticle::pt < cfgCutPtMax);
   using FilteredMcParticles = soa::Filtered<aod::McParticles>;
   using McParticlesFull = aod::McParticles;
-
   // Filter for MCcollisions
   Filter mccollisionFilter = nabs(aod::mccollision::posZ) < cfgCutVtxZ;
   using FilteredMcCollisions = soa::Filtered<aod::McCollisions>;
-
   using SmallGroupMcCollisions = soa::SmallGroups<soa::Join<aod::McCollisionLabels, aod::Collisions, aod::EvSel, aod::CentFT0Cs, aod::CentFT0CVariant1s, aod::CentFT0Ms, aod::CentFV0As, aod::Mults>>;
 
   Partition<MyFilteredTracks> positive = aod::track::signed1Pt > ConfChargeCut;
   Partition<MyFilteredTracks> negative = aod::track::signed1Pt < ConfChargeCut;
-
   Partition<MyFilteredTracks> triggerTracks = aod::track::pt > triggerMinPt;
   Partition<MyFilteredTracks> associatedTracks = aod::track::pt > associatedMinPt&& aod::track::pt <= associatedMaxPt;
-
   Preslice<MyTracks> perCol = aod::track::collisionId;
   PresliceUnsorted<aod::McCollisionLabels> collisionPerMCCollision = aod::mccollisionlabel::mcCollisionId;
 
   ConfigurableAxis ConfMultBins{"ConfMultBins", {VARIABLE_WIDTH, 0.0f, 20.0f, 40.0f, 60.0f, 80.0f, 100.0f, 200.0f, 99999.f}, "Mixing bins - multiplicity"};
   ConfigurableAxis ConfVtxBins{"ConfVtxBins", {VARIABLE_WIDTH, -10.0f, -8.f, -6.f, -4.f, -2.f, 0.f, 2.f, 4.f, 6.f, 8.f, 10.f}, "Mixing bins - z-vertex"};
-
   ConfigurableAxis axisVertex{"axisVertex", {10, -10, 10}, "vertex axis for histograms"};
   ConfigurableAxis axisMultiplicity{"axisMultiplicity", {VARIABLE_WIDTH, 0, 10, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260}, "multiplicity axis for histograms"};
   ConfigurableAxis axisCentrality{"axisCentrality", {VARIABLE_WIDTH, 0, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100}, "centrality axis for histograms"};
@@ -236,7 +218,6 @@ struct twoParticleAzimuthalCorr {
   ConfigurableAxis axisSample{"axisSample", {cfgSampleSize, 0, cfgSampleSize}, "sample axis for histograms"};
   ConfigurableAxis axisPt{"axisPt", {200, 0.0f, 20.0f}, "pt axis"};
   ConfigurableAxis axisPtQA{"axisPtQA", {VARIABLE_WIDTH, 0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f, 1.1f, 1.2f, 1.3f, 1.4f, 1.5f, 1.6f, 1.7f, 1.8f, 1.9f, 2.0f, 2.2f, 2.4f, 2.6f, 2.8f, 3.0f, 3.2f, 3.4f, 3.6f, 3.8f, 4.0f, 4.4f, 4.8f, 5.2f, 5.6f, 6.0f, 6.5f, 7.0f, 7.5f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 17.0f, 19.0f, 21.0f, 23.0f, 25.0f, 30.0f, 35.0f, 40.0f, 50.0f}, "pt axis for QA histograms"};
-
   ConfigurableAxis axisVertexEfficiency{"axisVertexEfficiency", {10, -10, 10}, "vertex axis for efficiency histograms"};
   ConfigurableAxis axisEtaEfficiency{"axisEtaEfficiency", {20, -1.0, 1.0}, "eta axis for efficiency histograms"};
   ConfigurableAxis axisPtEfficiency{"axisPtEfficiency", {VARIABLE_WIDTH, 0.2, 0.5, 1, 1.5, 2, 3, 4, 6, 10}, "pt axis for efficiency histograms"};
@@ -257,40 +238,30 @@ struct twoParticleAzimuthalCorr {
     SameEvent = 1,
     MixedEvent = 3
   };
-
   // Equivalent of the AliRoot task UserCreateOutputObjects
   void init(o2::framework::InitContext&)
   {
     if (cfgCentTableUnavailable && !cfgSelCollByNch) {
       LOGF(fatal, "Centrality table is unavailable, cannot select collisions by centrality");
     }
-
     const AxisSpec axisPhi{72, 0.0, 2 * o2::constants::math::PI, "#varphi"};
     const AxisSpec axisEta{40, -1., 1., "#eta"};
-
     ccdb->setURL("http://alice-ccdb.cern.ch");
     ccdb->setCaching(true);
     auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     ccdb->setCreatedNotAfter(now);
-
     LOGF(info, "Starting init");
-
     histos.add("ptAssoHistogram", "ptAssoHistogram", kTH1D, {axisPtQA});
     histos.add("ptTrigHistogram", "ptTrigHistogram", kTH1D, {axisPtQA});
-
     histos.add("correlationFunction", "correlationFunction", kTH1D, {axisDeltaPhi});
     histos.add("correlationFunctionO2", "correlationFunctionO2", kTH1D, {axisDeltaPhi});
-
     histos.add("correlationFunction2d", "correlationFunction2d", kTH2F, {axisDeltaPhi, axisDeltaEta});
-
     // mixed-event histograms
     histos.add("correlationFunctionMixed", "correlationFunctionMixed", kTH1F, {axisDeltaPhi});
     histos.add("correlationFunction2dMixed", "correlationFunction2dMixed", kTH2F, {axisDeltaPhi, axisDeltaEta});
     histos.add("associatedPt", "associatedPt", kTH1D, {axisPtQA});
-
     // prepare mixing buffers (one deque per z-bin)
     mixBuffer.resize(nMixZBins);
-
     // Add histograms to histogram manager (as in the output object of in AliPhysics)
     histos.add("hZvtx", ";Z (cm)", kTH1F, {axisVertex});
     histos.add("hP", ";#it{p} (GeV/#it{c})", kTH1F, {{35, 0.5, 4.}});
@@ -302,7 +273,6 @@ struct twoParticleAzimuthalCorr {
     histos.add("hInvariantMass", ";M_{#pi^{+}#pi^{-}} (GeV/#it{c}^{2});", kTH1F, {{100, 0., 1.0}});
     histos.add("hInvariantMassMixed", ";M_{#pi^{+}#pi^{-}} (GeV/#it{c}^{2});", kTH1F, {{100, 0., 1.0}});
     histos.add("hInvariantMassMixedInterface", ";M_{#pi^{+}#pi^{-}} (GeV/#it{c}^{2});", kTH1F, {{100, 0., 1.0}});
-
     // Event Counter
     if (doprocessSame && cfgUseAdditionalEventCut) {
       histos.add("hEventCountSpecific", "Number of Event;; Count", {HistType::kTH1D, {{12, 0, 12}}});
@@ -319,7 +289,6 @@ struct twoParticleAzimuthalCorr {
       histos.get<TH1>(HIST("hEventCountSpecific"))->GetXaxis()->SetBinLabel(11, "MultCorrelation");
       histos.get<TH1>(HIST("hEventCountSpecific"))->GetXaxis()->SetBinLabel(12, "cfgEvSelV0AT0ACut");
     }
-
     std::string hCentTitle = "Centrality distribution, Estimator " + std::to_string(cfgCentEstimator);
     // Make histograms to check the distributions after cuts
     if (doprocessSame) {
@@ -341,7 +310,6 @@ struct twoParticleAzimuthalCorr {
       histos.add("SE_correlation", "", {HistType::kTHnSparseF, {{axisDeltaPhi, axisDeltaEta, axisPtTrigger, axisPtAssoc, axisCentrality}}});
       histos.add("ME_correlation", "", {HistType::kTHnSparseF, {{axisDeltaPhi, axisDeltaEta, axisPtTrigger, axisPtAssoc, axisCentrality}}});
     }
-
     //  if (doprocessMCSame) {
     //   LOGF(fatal, "Full simulation and on-the-fly processing of same event not supported");
     // }
@@ -377,7 +345,6 @@ struct twoParticleAzimuthalCorr {
       histos.get<TH1>(HIST("MCEffeventcount"))->GetXaxis()->SetBinLabel(4, "Reco All");
       histos.get<TH1>(HIST("MCEffeventcount"))->GetXaxis()->SetBinLabel(5, "Fake");
     }
-
     LOGF(info, "Initializing correlation container");
     std::vector<AxisSpec> corrAxis = {{axisSample, "Sample"},
                                       {axisVertex, "z-vtx (cm)"},
@@ -546,18 +513,14 @@ struct twoParticleAzimuthalCorr {
   {
     float charge1 = track1.sign();
     float charge2 = track2.sign();
-
     float phi1 = track1.phi();
     float phi2 = track2.phi();
-
     float pt1 = track1.pt();
     float pt2 = track2.pt();
-
     int fbSign = (magField > 0) ? 1 : -1;
 
     /// \param phi1 first phi value
     /// \param phi2 second phi value
-
     Double_t getdeltaPhi = phi1 - phi2 - charge1 * fbSign * std::asin(0.075 * radius / pt1) + charge2 * fbSign * std::asin(0.075 * radius / pt2);
     if (getdeltaPhi < -TMath::Pi() / 2.) {
       getdeltaPhi += 2. * TMath::Pi();
@@ -567,7 +530,6 @@ struct twoParticleAzimuthalCorr {
     }
     return getdeltaPhi;
   }
-
   template <CorrelationContainer::CFStep step, typename TTracks, typename TTracksAssoc>
   void fillCorrelations(TTracks tracks1, TTracksAssoc tracks2, float posZ, int system, int magneticField, float cent, float eventWeight) // function to fill the Output functions (sparse) and the delta eta and delta phi histograms
   {
@@ -576,28 +538,21 @@ struct twoParticleAzimuthalCorr {
         histos.fill(HIST("Centrality_used"), cent);
       }
     }
-
     // Fill centrality histogram
     histos.fill(HIST("Centrality"), cent);
-
     int fSampleIndex = gRandom->Uniform(0, cfgSampleSize);
-
     float triggerWeight = 1.0f;
     float associatedWeight = 1.0f;
     // loop over all tracks
     for (auto const& track1 : tracks1) {
-
       if (!trackSelected(track1))
         continue;
       if (system == SameEvent) {
         histos.fill(HIST("Trig_hist"), fSampleIndex, posZ, track1.pt(), eventWeight * triggerWeight);
       }
-
       for (auto const& track2 : tracks2) {
-
         if (!trackSelected(track2))
           continue;
-
         if (!cfgUsePtOrder && track1.globalIndex() == track2.globalIndex())
           continue; // For pt-differential correlations, skip if the trigger and associate are the same track
         if (cfgUsePtOrder && system == SameEvent && track1.pt() <= track2.pt())
@@ -609,14 +564,10 @@ struct twoParticleAzimuthalCorr {
         float deltaEta = track1.eta() - track2.eta();
 
         if (std::abs(deltaEta) < cfgCutMerging) {
-
           double dPhiStarHigh = getdeltaPhi(track1, track2, cfgRadiusHigh, magneticField);
           double dPhiStarLow = getdeltaPhi(track1, track2, cfgRadiusLow, magneticField);
-
           const double kLimit = 3.0 * cfgCutMerging;
-
           bool bIsBelow = false;
-
           if (std::abs(dPhiStarLow) < kLimit || std::abs(dPhiStarHigh) < kLimit || dPhiStarLow * dPhiStarHigh < 0) {
             for (double rad(cfgRadiusLow); rad < cfgRadiusHigh; rad += 0.01) {
               double dPhiStar = getdeltaPhi(track1, track2, rad, magneticField);
@@ -633,13 +584,10 @@ struct twoParticleAzimuthalCorr {
 
         // fill the right sparse and histograms
         if (system == SameEvent) {
-
           same->getPairHist()->Fill(step, fSampleIndex, posZ, track1.pt(), track2.pt(), deltaPhi, deltaEta, eventWeight * triggerWeight * associatedWeight);
           histos.fill(HIST("deltaEta_deltaPhi_same"), deltaPhi, deltaEta, eventWeight * triggerWeight * associatedWeight);
           histos.fill(HIST("SE_correlation"), deltaPhi, deltaEta, track1.pt(), track2.pt(), cent);
-
         } else if (system == MixedEvent) {
-
           mixed->getPairHist()->Fill(step, fSampleIndex, posZ, track1.pt(), track2.pt(), deltaPhi, deltaEta, eventWeight * triggerWeight * associatedWeight);
           histos.fill(HIST("deltaEta_deltaPhi_mixed"), deltaPhi, deltaEta, eventWeight * triggerWeight * associatedWeight);
           histos.fill(HIST("ME_correlation"), deltaPhi, deltaEta, track1.pt(), track2.pt(), cent);
@@ -671,7 +619,6 @@ struct twoParticleAzimuthalCorr {
           continue;
         if (!genTrackSelected(track2))
           continue;
-
         if (!cfgUsePtOrder && track1.globalIndex() == track2.globalIndex())
           continue; // For pt-differential correlations, skip if the trigger and associate are the same track
         if (cfgUsePtOrder && system == SameEvent && track1.pt() <= track2.pt())
@@ -687,14 +634,12 @@ struct twoParticleAzimuthalCorr {
           same->getPairHist()->Fill(step, fSampleIndex, posZ, track1.pt(), track2.pt(), deltaPhi, deltaEta, eventWeight * triggerWeight * associatedWeight);
           histos.fill(HIST("MCdeltaEta_deltaPhi_same"), deltaPhi, deltaEta, eventWeight * triggerWeight * associatedWeight);
           histos.fill(HIST("SE_correlation_MC"), deltaPhi, deltaEta, track1.pt(), track2.pt());
-
           if (doprocessMCSame)
             histos.fill(HIST("MCTrue/MCdeltaEta_deltaPhi_same"), deltaPhi, deltaEta, eventWeight * triggerWeight * associatedWeight);
         } else if (system == MixedEvent) {
           mixed->getPairHist()->Fill(step, fSampleIndex, posZ, track1.pt(), track2.pt(), deltaPhi, deltaEta, eventWeight * triggerWeight * associatedWeight);
           histos.fill(HIST("MCdeltaEta_deltaPhi_mixed"), deltaPhi, deltaEta, eventWeight * triggerWeight * associatedWeight);
           histos.fill(HIST("ME_correlation_MC"), deltaPhi, deltaEta, track1.pt(), track2.pt());
-
           if (doprocessMCMixed)
             histos.fill(HIST("MCTrue/MCdeltaEta_deltaPhi_mixed"), deltaPhi, deltaEta, eventWeight * triggerWeight * associatedWeight);
         }
@@ -900,21 +845,16 @@ struct twoParticleAzimuthalCorr {
     // }
   }
   PROCESS_SWITCH(twoParticleAzimuthalCorr, processSame, "Process same event", false);
-
   // the process for filling the mixed events
   void processMixed(MyFilteredCollisions const& collisions, MyFilteredTracks const& tracks, aod::BCsWithTimestamps const&)
   {
-
     auto getTracksSize = [&tracks, this](MyFilteredCollisions::iterator const& collision) {
       auto associatedTracks = tracks.sliceByCached(o2::aod::track::collisionId, collision.globalIndex(), this->cache);
       auto mult = associatedTracks.size();
       return mult;
     };
-
     using MixedBinning = FlexibleBinningPolicy<std::tuple<decltype(getTracksSize)>, aod::collision::PosZ, decltype(getTracksSize)>;
-
     MixedBinning binningOnVtxAndMult{{getTracksSize}, {axisVtxMix, axisMultMix}, true};
-
     auto tracksTuple = std::make_tuple(tracks, tracks);
     Pair<MyFilteredCollisions, MyFilteredTracks, MyFilteredTracks, MixedBinning> pairs{binningOnVtxAndMult, cfgMixEventNumMin, -1, collisions, tracksTuple, &cache}; // -1 is the number of the bin to skip
     for (auto it = pairs.begin(); it != pairs.end(); it++) {
@@ -944,7 +884,6 @@ struct twoParticleAzimuthalCorr {
 
       if (!cfgSelCollByNch && !cfgCentTableUnavailable && (cent2 < cfgCutCentMin || cent2 >= cfgCutCentMax))
         continue;
-
       histos.fill(HIST("zVtx"), MixedEvent); // fill the mixed event in the 3 bin
       auto bc = collision1.bc_as<aod::BCsWithTimestamps>();
       loadCorrection(bc.timestamp());
@@ -1017,17 +956,13 @@ struct twoParticleAzimuthalCorr {
     }
   }
   PROCESS_SWITCH(twoParticleAzimuthalCorr, processMCEfficiency, "MC: Extract efficiencies", true);
-
   // LOGF(info, "#######################################################################");
-
   void processMCSame(FilteredMcCollisions::iterator const& mcCollision, FilteredMcParticles const& mcParticles, SmallGroupMcCollisions const& collisions)
   {
     if (cfgVerbosity) {
       LOGF(info, "processMCSame. MC collision: %d, particles: %d, collisions: %d", mcCollision.globalIndex(), mcParticles.size(), collisions.size());
     }
-
     // LOGF(info, "======================================================================");
-
     float cent = -1;
     if (!cfgCentTableUnavailable) {
       for (const auto& collision : collisions) {
@@ -1054,15 +989,12 @@ struct twoParticleAzimuthalCorr {
         histos.fill(HIST("MCTrue/MCpT"), mcParticle.pt());
       }
     }
-
     // auto assoTracksThisCollisionMC = associatedTracks->sliceByCached(aod::mcparticle::mcCollisionId, mcCollision.globalIndex(), cache);
     // auto trigTracksThisCollisionMC = triggerTracks->sliceByCached(aod::mcparticle::mcCollisionId, mcCollision.globalIndex(), cache);
 
     same->fillEvent(mcParticles.size(), CorrelationContainer::kCFStepAll);
-
     fillMCCorrelations<CorrelationContainer::kCFStepAll>(mcParticles, mcParticles, mcCollision.posZ(), SameEvent, 1.0f);
     // fillMCCorrelations<CorrelationContainer::kCFStepAll>(trigTracksThisCollisionMC, assoTracksThisCollisionMC, mcCollision.posZ(), SameEvent, 1.0f);
-
     if (collisions.size() == 0) {
       return;
     }
@@ -1073,7 +1005,6 @@ struct twoParticleAzimuthalCorr {
     // fillMCCorrelations<CorrelationContainer::kCFStepTrackedOnlyPrim>(trigTracksThisCollisionMC, assoTracksThisCollisionMC, mcCollision.posZ(), SameEvent, 1.0f);
   }
   PROCESS_SWITCH(twoParticleAzimuthalCorr, processMCSame, "Process MC same event", true);
-
   void processMCMixed(FilteredMcCollisions const& mcCollisions, FilteredMcParticles const& mcParticles, SmallGroupMcCollisions const& collisions)
   {
     auto getTracksSize = [&mcParticles, this](FilteredMcCollisions::iterator const& mcCollision) {
@@ -1083,9 +1014,7 @@ struct twoParticleAzimuthalCorr {
     };
 
     using MixedBinning = FlexibleBinningPolicy<std::tuple<decltype(getTracksSize)>, o2::aod::mccollision::PosZ, decltype(getTracksSize)>;
-
     MixedBinning binningOnVtxAndMult{{getTracksSize}, {axisVtxMix, axisMultMix}, true};
-
     auto tracksTuple = std::make_tuple(mcParticles, mcParticles);
     Pair<FilteredMcCollisions, FilteredMcParticles, FilteredMcParticles, MixedBinning> pairs{binningOnVtxAndMult, cfgMixEventNumMin, -1, mcCollisions, tracksTuple, &cache}; // -1 is the number of the bin to skip
     for (auto it = pairs.begin(); it != pairs.end(); it++) {
@@ -1116,20 +1045,16 @@ struct twoParticleAzimuthalCorr {
       if (cfgUseEventWeights) {
         eventWeight = 1.0f / it.currentWindowNeighbours();
       }
-
       fillMCCorrelations<CorrelationContainer::kCFStepAll>(tracks1, tracks2, collision1.posZ(), MixedEvent, eventWeight);
-
       if (groupedCollisions.size() == 0) {
         continue;
       }
-
       histos.fill(HIST("MCTrue/MCeventcount"), 4.5);
       fillMCCorrelations<CorrelationContainer::kCFStepTrackedOnlyPrim>(tracks1, tracks2, collision1.posZ(), MixedEvent, eventWeight);
     }
   }
   PROCESS_SWITCH(twoParticleAzimuthalCorr, processMCMixed, "Process MC mixed events", true);
 };
-
 WorkflowSpec defineDataProcessing(ConfigContext const& cfgc)
 {
   // Equivalent to the AddTask in AliPhysics
